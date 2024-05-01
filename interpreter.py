@@ -1,15 +1,15 @@
+from os import linesep
 from sys import argv
 from collections import deque
 
-# KEYWORDS = {'const', 'int', 'str', 'vertical', 'horizontal'}
-
-def variable_tokens(variable_line: str) -> dict | None:
+def variable_tokenizer(variable_line: str) -> dict | None:
     token = {}
-    if len(variable_line) == 0:
+    words = variable_line.split()
+
+    if len(words) == 0:
         return None
 
     isCompleted = False
-    words = variable_line.split()
     for num, keyword in enumerate(words):
         if not isCompleted:
             match keyword:
@@ -24,30 +24,52 @@ def variable_tokens(variable_line: str) -> dict | None:
                     isCompleted = True
             continue
         if token['type'] == 'int':
-            token['range'] = tuple([words[num], words[num+1]])
+            token['range'] = tuple( [int(words[num]), int(words[num+1][:-1]) ])
+            break
         
-        
-    # Load in the missing keys
+    if 'isConst' not in token.keys():
+        token['isConst'] = False
 
     return token
 
-def tokenizer(lines: deque) -> dict:
+def layout_tokenizer(line_stack: list) -> tuple | None:
     tokens = []
 
-    # Scanning until reaching 
-    currentLine = lines.popleft()
-    while currentLine != "<":
-        returnToken = variable_tokens(currentLine)
-        if returnToken is not None:
-            tokens.append(returnToken)
-
+    for index, line in enumerate(line_stack):
+        # Logic for processing the 2 built-in variables
+        if 'vertical' in line or 'horizontal' in line:
+            pass
+        else:
+            # Breaking up the lines
+            words = line.split()
+            # for word in words:
+    
+    
     return tuple(tokens)
+
+def tokenizer(lines: deque) -> dict:
+    variableTokens = []
+
+    # Scanning until reaching 
+    currentLine: str = lines.popleft()
+    currentLine = currentLine.replace('\n', '')
+    while currentLine != "<":
+        returnToken = variable_tokenizer(currentLine)
+        if returnToken is not None:
+            variableTokens.append(returnToken)
+        currentLine = lines.popleft()
+        currentLine = currentLine.replace('\n', '')
+    lines.pop()
+    layoutTokens = layout_tokenizer(list(lines))
+
+    return tuple(variableTokens, layout_tokenizer)
 
 def main(path: str):
     # Reading the file itself
     with open(path, 'r') as f:
         lines = f.readlines()
     lines = deque(lines)
+    tokens = tokenizer(lines)
 
 if __name__ == "__main__":
     # Retrieving the given file path
