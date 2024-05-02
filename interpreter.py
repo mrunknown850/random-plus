@@ -16,7 +16,7 @@ class RandomInteger:
         self.low: int = low
         self.high: int = high
     def __repr__(self) -> int:
-        return random.randint(low, high)
+        return random.randint(self.low, self.high)
 
 FILENAME = ""
 CURRENT_LINE = 0
