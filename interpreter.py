@@ -1,9 +1,21 @@
-from os import linesep
 from sys import argv
 from collections import deque
 import random
 
-# def randomString(length: int) -> str:
+class ConstantString:
+    def __init__(self, length: int) -> None:
+        ALPHABET = "qwertyuiopasdfghjklzxcvbnm"
+        self.value: str = ''.join(random.choices(ALPHABET, k=length))
+    def __repr__(self) -> str:
+        return self.value
+
+class RandomString:
+    def __init__(self, length: int) -> None:
+        self.length = length
+    @property
+    def value(self) -> str:
+        ALPHABET = "qwertyuiopasdfghjklzxcvbnm"
+        return ''.join(random.choices(ALPHABET, k=self.length))
 
 class ConstantInteger:
     def __init__(self, low: int, high: int) -> None:
@@ -15,7 +27,8 @@ class RandomInteger:
     def __init__(self, low: int, high: int) -> None:
         self.low: int = low
         self.high: int = high
-    def __repr__(self) -> int:
+    @property
+    def value(self):
         return random.randint(self.low, self.high)
 
 FILENAME = ""
@@ -24,6 +37,22 @@ CURRENT_LINE = 0
 class InvalidKeyword(Exception):
     def __init__(self):
         super().__init__(f'File "{FILENAME}", line {CURRENT_LINE}')
+
+def classify_variable(variable_token: tuple) -> dict:
+    output = {}
+    for token in variable_token:
+        if token['isConst']:
+            if token['type'] == 'int':
+                output[token['name']] = ConstantInteger(token['range'][0], token['range'][1])
+            elif token['type'] == 'str':
+                output[token['name']] = ConstantString(token['length'])
+        else:
+            if token['type'] == 'int':
+                output[token['name']] = RandomInteger(token['range'][0], token['range'][1])
+            elif token['type'] == 'str':
+                output[token['name']] = RandomString(token['length'])
+                pass
+    return output
 
 def variable_tokenizer(variable_line: str) -> dict | None:
     global CURRENT_LINE
@@ -56,6 +85,12 @@ def variable_tokenizer(variable_line: str) -> dict | None:
         if token['type'] == 'int':
             try:
                 token['range'] = tuple( sorted( [int(words[num]), int(words[num+1]) ] ))
+            except ValueError:
+                raise InvalidKeyword
+            break
+        elif token['type'] == 'str':
+            try:
+                token['length'] = int(words[num])
             except ValueError:
                 raise InvalidKeyword
             break
@@ -221,8 +256,11 @@ def main(path: str):
     with open(FILENAME, 'r') as f:
         lines = f.readlines()
     lines = deque(lines)
-    tokens = tokenizer(lines)
-    print()
+
+    # Getting the tokenized lines
+    variableTokens, layoutTokens = tokenizer(lines)
+    variableTokens = classify_variable(variableTokens)
+
 
 if __name__ == "__main__":
     # Retrieving the given file path
