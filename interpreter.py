@@ -140,7 +140,7 @@ def layout_tokenizer(line_stack: list) -> tuple | None:
                 case 'horizontal':
                     IS_HORIZONTAL = True
 
-                    currentToken['type'] = {'h-array'}
+                    currentToken['type'] = 'h-array'
                     currentToken['contain'] = []
 
                     if words[1][0] == "$":
@@ -196,8 +196,27 @@ def layout_tokenizer(line_stack: list) -> tuple | None:
             if len(subToken) != 0:
                 currentToken['contain'].append(subToken)
         elif not IS_VERTICAL and IS_HORIZONTAL:
-            # * RAISE EXCEPTION
-            raise InvalidKeyword
+            subToken = {}
+            # * Only the HORIZONTAL is available
+            match words[0]:
+                case 'vertical':
+                    raise InvalidKeyword
+                case 'horizontal':
+                    raise InvalidKeyword
+                case 'v-end':
+                    raise InvalidKeyword
+                case 'h-end':
+                    IS_HORIZONTAL = False
+                case _:
+                    subToken['type'] = 'list'
+                    subToken['contain'] = []
+                    for word in words:
+                        if word[0] == "$":
+                            subToken['contain'].append({'type': 'var', 'value': word[1:]})
+                        else:
+                            subToken['contain'].append({'type': 'const', 'value': word})
+            if len(subToken) != 0:
+                currentToken['contain'].append(subToken)
         elif IS_VERTICAL and IS_HORIZONTAL:
             subToken = {}
             # * Only the HORIZONTAL is available
@@ -249,6 +268,35 @@ def tokenizer(lines: deque) -> dict:
 
     return tuple([variableTokens, layoutTokens])
 
+def generate(variableToken: dict, layoutToken: tuple):
+    lines = []
+    for token in layoutToken:
+        currentLine: str = ''
+        
+        # Processing line by line
+        if token['type'] == 'list':
+            for subToken in token['contain']:
+                if subToken['type'] == 'var':
+                    currentLine += str(variableToken[subToken['value']].value) + " "
+                elif subToken['type'] == 'const':
+                    currentLine += str(subToken['value']) + " "
+            lines.append(currentLine[:-1])
+        elif token['type'] == 'h-array':
+            if type(token['length']) == str:
+            # Cycling through each iteration based on variabled time
+                for cycle in range(variableToken[token['length']].value):
+                    for subToken in token['contain']:
+                        for subSubToken in subToken['contain']:
+                            if subSubToken['type'] == 'var':
+                                currentLine += str(variableToken[subSubToken['value']].value) + " "
+                            elif subSubToken['type'] == 'const':
+                                currentLine += str(subSubToken['value']) + " "
+                lines.append(currentLine[:-1])
+    # EXTRA
+    # for line in lines:
+    #     print(line)
+                
+
 def main(path: str):
     # Reading the file itself
     global FILENAME
@@ -260,6 +308,8 @@ def main(path: str):
     # Getting the tokenized lines
     variableTokens, layoutTokens = tokenizer(lines)
     variableTokens = classify_variable(variableTokens)
+
+    print(generate(variableTokens, layoutTokens))
 
 
 if __name__ == "__main__":
