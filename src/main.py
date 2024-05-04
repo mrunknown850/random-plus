@@ -11,6 +11,7 @@ ALPHABET = "qwertyuiopasdfghjklzxcvbnm"
 FILENAME = ""
 CURRENT_LINE = 0
 
+path = argv[1]
 
 class ConstantString:
     """A class to define an initialy randomized string."""
@@ -382,8 +383,35 @@ def generate(variable_token: dict, layout_token: tuple):
     return lines
 
 
-def main(path: str):
+# def main(path: str):
+#     # Reading the file itself
+#     global FILENAME
+#     FILENAME = path
+#     with open(FILENAME, "r", encoding="UTF-8") as f:
+#         lines = f.readlines()
+#     lines = deque(lines)
+
+#     # Getting the tokenized lines
+#     variable_tokens, layout_tokens = tokenizer(lines)
+#     variable_tokens = classify_variable(variable_tokens)
+
+#     output_lines = generate(variable_tokens, layout_tokens)
+
+
+#     final_string = ""
+#     for line in output_lines:
+#         final_string += line + "\n"
+
+#     path = path.replace(".rnd", ".inp")
+#     with open(path, "w", encoding="UTF-8") as f:
+#         f.write(final_string[:-2])
+
+#     chmod(path, 0o777)
+
+
+def interpret():
     # Reading the file itself
+    global path
     global FILENAME
     FILENAME = path
     with open(FILENAME, "r", encoding="UTF-8") as f:
@@ -396,7 +424,6 @@ def main(path: str):
 
     output_lines = generate(variable_tokens, layout_tokens)
 
-
     final_string = ""
     for line in output_lines:
         final_string += line + "\n"
@@ -406,8 +433,9 @@ def main(path: str):
         f.write(final_string[:-2])
 
     chmod(path, 0o777)
+    print(f"Interpreted '{FILENAME}' to '{path}'")
 
 
-if __name__ == "__main__":
-    # Retrieving the given file path
-    main(argv[1])
+# if __name__ == "__main__":
+#     # Retrieving the given file path
+#     interpret(argv[1])

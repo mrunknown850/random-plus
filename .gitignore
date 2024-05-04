@@ -1,2 +1,6 @@
 temp
 .vscode
+.venv
+build
+dist
+RandomPlus.egg-info
