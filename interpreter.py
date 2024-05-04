@@ -1,6 +1,7 @@
 """Important library for the interpreter"""
 
 from sys import argv
+from os import chmod
 from collections import deque
 
 # from enum import Enum
@@ -393,7 +394,18 @@ def main(path: str):
     variable_tokens, layout_tokens = tokenizer(lines)
     variable_tokens = classify_variable(variable_tokens)
 
-    print(generate(variable_tokens, layout_tokens))
+    output_lines = generate(variable_tokens, layout_tokens)
+
+
+    final_string = ""
+    for line in output_lines:
+        final_string += line + "\n"
+
+    path = path.replace(".rnd", ".inp")
+    with open(path, "w", encoding="UTF-8") as f:
+        f.write(final_string[:-2])
+
+    chmod(path, 0o777)
 
 
 if __name__ == "__main__":
